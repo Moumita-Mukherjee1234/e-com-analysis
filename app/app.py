@@ -22,31 +22,57 @@ st.set_page_config(
 # ------------------------------
 # PATH SETUP
 # ------------------------------
-APP_DIR = Path(__file__).resolve().parent      # ecom/app
-BASE_DIR = APP_DIR.parent                      # ecom
+APP_DIR = Path(__file__).resolve().parent      # e-com-analysis/app
+BASE_DIR = APP_DIR.parent                     # e-com-analysis
 DATA_DIR = BASE_DIR / "data"
 MODEL_DIR = BASE_DIR / "models"
 
 # ------------------------------
-# LOAD DATA
+# LOAD DATA (ZIP SAFE)
 # ------------------------------
-@st.cache_data
+@st.cache_data(show_spinner="Loading datasets...")
 def load_data():
-    retail = pd.read_csv(DATA_DIR / "raw" / "OnlineRetail_clean.csv")
-    customer_features = pd.read_csv(DATA_DIR / "features" / "customer_features.csv")
-    customer_clusters = pd.read_csv(DATA_DIR / "features" / "customer_clusters.csv")
+    raw_zip = DATA_DIR / "raw" / "OnlineRetail_clean.zip"
+    feat_path = DATA_DIR / "features" / "customer_features.csv"
+    cluster_path = DATA_DIR / "features" / "customer_clusters.csv"
 
+    # ---- Safety checks ----
+    for path in [raw_zip, feat_path, cluster_path]:
+        if not path.exists():
+            st.error(f"❌ Missing file: {path}")
+            st.stop()
+
+    # ---- Load data ----
+    retail = pd.read_csv(raw_zip, compression="zip")
+    customer_features = pd.read_csv(feat_path)
+    customer_clusters = pd.read_csv(cluster_path)
+
+    # ---- Feature engineering ----
     retail["InvoiceDate"] = pd.to_datetime(retail["InvoiceDate"])
     retail["InvoiceMonth"] = retail["InvoiceDate"].dt.to_period("M").astype(str)
 
     return retail, customer_features, customer_clusters
 
-@st.cache_resource
+# ------------------------------
+# LOAD MODELS
+# ------------------------------
+@st.cache_resource(show_spinner="Loading models...")
 def load_models():
-    rf_model = joblib.load(MODEL_DIR / "predictor_rf.joblib")
-    scaler = joblib.load(MODEL_DIR / "scaler_rfm.joblib")
+    model_path = MODEL_DIR / "predictor_rf.joblib"
+    scaler_path = MODEL_DIR / "scaler_rfm.joblib"
+
+    if not model_path.exists() or not scaler_path.exists():
+        st.error("❌ Model or scaler file missing")
+        st.stop()
+
+    rf_model = joblib.load(model_path)
+    scaler = joblib.load(scaler_path)
+
     return rf_model, scaler
 
+# ------------------------------
+# INITIAL LOAD
+# ------------------------------
 retail, customer_features, customer_clusters = load_data()
 rf_model, scaler = load_models()
 
@@ -69,7 +95,7 @@ page = st.sidebar.radio(
 # GLOBAL FILTERS
 # ------------------------------
 st.sidebar.markdown("---")
-st.sidebar.subheader("Global Filters")
+st.sidebar.subheader("🌍 Global Filters")
 
 countries = ["All"] + sorted(retail["Country"].dropna().unique())
 selected_country = st.sidebar.selectbox("Country", countries)
@@ -145,12 +171,11 @@ elif page == "Customer Segmentation":
     st.plotly_chart(fig2, use_container_width=True)
 
 # ==============================
-# RFM ANALYSIS (FIXED)
+# RFM ANALYSIS
 # ==============================
 elif page == "RFM Analysis":
     st.title("📦 RFM Analysis")
 
-    # ---- RFM Score Distribution ----
     fig1 = px.histogram(
         customer_features,
         x="rfm_score",
@@ -158,7 +183,6 @@ elif page == "RFM Analysis":
     )
     st.plotly_chart(fig1, use_container_width=True)
 
-    # ---- FIX NEGATIVE MONETARY VALUES ----
     rfm_plot = customer_features.copy()
     rfm_plot["monetary_size"] = np.log1p(rfm_plot["monetary"].abs())
 
@@ -173,7 +197,7 @@ elif page == "RFM Analysis":
     st.plotly_chart(fig2, use_container_width=True)
 
 # ==============================
-# CUSTOMER PREDICTION (FIXED)
+# CUSTOMER PREDICTION
 # ==============================
 elif page == "Customer Prediction":
     st.title("🎯 Customer Value Prediction")
@@ -186,7 +210,6 @@ elif page == "Customer Prediction":
 
     if st.button("Predict"):
         try:
-            # Build input EXACTLY like training data
             input_df = pd.DataFrame(
                 {
                     "recency_days": [r],
@@ -195,10 +218,7 @@ elif page == "Customer Prediction":
                 }
             )
 
-            # Scale input
             input_scaled = scaler.transform(input_df)
-
-            # Predict
             prediction = rf_model.predict(input_scaled)[0]
             confidence = rf_model.predict_proba(input_scaled).max()
 
@@ -208,9 +228,8 @@ elif page == "Customer Prediction":
             st.info(f"Confidence: {confidence:.2%}")
 
         except Exception as e:
-            st.error("Prediction failed. Check model & scaler compatibility.")
+            st.error("Prediction failed.")
             st.exception(e)
-
 
 # ==============================
 # BUSINESS INSIGHTS
