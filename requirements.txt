@@ -9,4 +9,3 @@ plotly
 sqlalchemy
 pymysql
 pycountry==24.6.1
-openpyxl
