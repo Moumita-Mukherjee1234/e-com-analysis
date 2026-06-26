@@ -35,18 +35,7 @@ SEGMENT_COLORS = [
 ]
 
 
-def load_css():
 
-    with open(
-        "../assets/style.css"
-    ) as f:
-
-        st.markdown(
-            f"<style>{f.read()}</style>",
-            unsafe_allow_html=True
-        )
-
-load_css()
 
 # ------------------------------
 # PATH SETUP
@@ -55,6 +44,25 @@ APP_DIR = Path(__file__).resolve().parent      # e-com-analysis/app
 BASE_DIR = APP_DIR.parent                     # e-com-analysis
 DATA_DIR = BASE_DIR / "data"
 MODEL_DIR = BASE_DIR / "models"
+ASSETS_DIR = BASE_DIR / "assets"
+
+# LOAD CSS
+# ------------------------------
+def load_css():
+
+    css_file = ASSETS_DIR / "style.css"
+
+    if not css_file.exists():
+        st.error(f"CSS file not found:\n{css_file}")
+        st.stop()
+
+    with open(css_file, "r", encoding="utf-8") as f:
+        st.markdown(
+            f"<style>{f.read()}</style>",
+            unsafe_allow_html=True
+        )
+
+load_css()
 
 # ------------------------------
 # DATASET UPLOAD
