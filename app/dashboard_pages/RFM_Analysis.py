@@ -19,7 +19,7 @@ def show_rfm(customer_features, retail_filtered):
         font-weight:900;
         margin-bottom:0;
     ">
-        📦 RFM Analysis
+        📦 RFM ANALYSIS
     </h1>
     """, unsafe_allow_html=True)
 

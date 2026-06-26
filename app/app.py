@@ -71,6 +71,16 @@ uploaded_file = st.sidebar.file_uploader(
     "Upload Retail Dataset",
     type=["csv"]
 )
+with st.sidebar.expander("ℹ️ Required CSV Format"):
+    st.markdown("""
+    **Required columns:**
+    - Invoice
+    - Customer ID
+    - InvoiceDate
+    - Quantity
+    - Price
+    - Country
+    """)
 
 uploaded_customer_features = None
 

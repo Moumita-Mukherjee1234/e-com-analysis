@@ -42,7 +42,7 @@ def show_overview(retail_filtered, customer_features):
     font-weight:900;
     margin-bottom:0;
     ">
-    📊 E-Commerce Analytics Dashboard
+    📊 OVERVIEW
     </h1>
     """, unsafe_allow_html=True)
     

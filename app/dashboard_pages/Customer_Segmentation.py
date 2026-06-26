@@ -41,7 +41,7 @@ def show_customer_segmentation(
         font-weight:900;
         margin-bottom:0;
     ">
-        🧩 Customer Segmentation Dashboard
+        🧩 CUSTOMER ANALYSIS
     </h1>
     """, unsafe_allow_html=True)
 

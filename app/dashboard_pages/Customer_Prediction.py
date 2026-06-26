@@ -159,7 +159,7 @@ def show_prediction(rf_model):
     # ==========================
     # HEADER
     # ==========================
-    st.markdown('<div class="page-title">🎯 Purchase Prediction</div>', unsafe_allow_html=True)
+    st.markdown('<div class="page-title">🎯 PURCHASE PREDICTION</div>', unsafe_allow_html=True)
 
     st.markdown(
         '<div class="sub-text">Predict whether a customer will purchase using RFM metrics</div>',
